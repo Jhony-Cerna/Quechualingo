@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Generative AI</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "@google/generative-ai": "https://esm.run/@google/generative-ai"
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden; /* Ensure no scroll bars appear on body */
+        }
+        #chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Prevent elements from stretching */
+        }
+        form {
+            display: flex;
+            margin-top: auto;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            margin-right: 10px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            flex-shrink: 0; /* Prevent button from shrinking */
+        }
+        #response {
+            border: 1px solid #ccc;
+            padding: 10px;
+            flex-grow: 1; /* Adjust to take the remaining space */
+            overflow-y: auto;
+            white-space: pre-wrap;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+        }
+        .message.user {
+            justify-content: flex-end;
+        }
+        .message-content {
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 70%;
+            box-sizing: border-box; /* Include padding and border in element's total width and height */
+        }
+        .message.user .message-content {
+            background-color: #ffffff;
+        }
+        .message.ia .message-content {
+            background-color: #ec3030;
+            color: #ffffff;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 600px) {
+            input[type="text"] {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            button {
+                width: 100%;
+                padding: 10px;
+            }
+            form {
+                flex-direction: column;
+            }
+            .message-content {
+                max-width: 100%;
+            }
+        }
+
+        /* Image styling */
+        .banner-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        #banner {
+            width: 100%;
+            height: auto; /* Maintain aspect ratio */
+            max-width: 1081px;
+            max-height: 267px; /* Maintain a max height */
+        }
+    </style>
+</head>
+<body>
+    <div class="banner-container">
+        <img id="banner" src="Banner.jpg" alt="Banner">
+    </div>
+    <div id="chat-container">
+        <div id="response"></div>
+        <form id="askForm">
+            <input type="text" name="prompt" placeholder="Escribe tu pregunta">
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+    <script type="module">
+        import { GoogleGenerativeAI } from "@google/generative-ai";
+
+        const API_KEY = "AIzaSyBsuH8i1r1M3rc0Zuu6NMi_qa9fAcUVDfE";
+        const genAI = new GoogleGenerativeAI(API_KEY);
+
+        async function generateResponse(prompt) {
+            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            return response.text();
+        }
+
+        async function handleRequest(event) {
+            event.preventDefault();
+            const prompt = event.target.prompt.value;
+            const userMessage = document.createElement('div');
+            userMessage.classList.add('message', 'user');
+            userMessage.innerHTML = `<div class="message-content">${prompt}</div>`;
+            document.getElementById('response').appendChild(userMessage);
+
+            const response = await generateResponse(prompt);
+            const iaMessage = document.createElement('div');
+            iaMessage.classList.add('message', 'ia');
+            iaMessage.innerHTML = `<div class="message-content">${response}</div>`;
+            document.getElementById('response').appendChild(iaMessage);
+
+            // Scroll to the bottom of the response div
+            document.getElementById('response').scrollTop = document.getElementById('response').scrollHeight;
+
+            event.target.prompt.value = '';
+        }
+
+        document.getElementById('askForm').addEventListener('submit', handleRequest);
+    </script>
+</body>
+</html>
